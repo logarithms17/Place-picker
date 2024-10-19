@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Places from "./Places.jsx";
-import axios from "axios";
 import Error from "./Error.jsx";
+import { sortPlacesByDistance } from "../loc.js";
+import { fetchAvailablePlaces } from "../http.js";
 
 export default function AvailablePlaces({ onSelectPlace }) {
   const [availablePlaces, setAvailablePlaces] = useState([]);
@@ -12,13 +13,25 @@ export default function AvailablePlaces({ onSelectPlace }) {
     setLoading(true);
     const fetchData = async () => {
       try {
-        const result = await axios.get("http://localhost:3000/places");
-        setAvailablePlaces(result.data.places);
+        const places = await fetchAvailablePlaces();
+        console.log(places);
+
+        navigator.geolocation.getCurrentPosition((position) => {
+          const sortedPlaces = sortPlacesByDistance(
+            places,
+            position.coords.latitude,
+            position.coords.longitude
+          );
+          console.log(sortedPlaces);
+
+          setAvailablePlaces(sortedPlaces);
+          setLoading(false);
+        });
       } catch (error) {
         console.log(error);
         setError(error);
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchData();
