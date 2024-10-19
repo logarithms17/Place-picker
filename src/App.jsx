@@ -1,10 +1,12 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from "react";
 
-import Places from './components/Places.jsx';
-import Modal from './components/Modal.jsx';
-import DeleteConfirmation from './components/DeleteConfirmation.jsx';
-import logoImg from './assets/logo.png';
-import AvailablePlaces from './components/AvailablePlaces.jsx';
+import Places from "./components/Places.jsx";
+import Modal from "./components/Modal.jsx";
+import DeleteConfirmation from "./components/DeleteConfirmation.jsx";
+import logoImg from "./assets/logo.png";
+import AvailablePlaces from "./components/AvailablePlaces.jsx";
+import axios from "axios";
+import { updateUserPlaces, fetchUserPlaces } from "./http.js";
 
 function App() {
   const selectedPlace = useRef();
@@ -12,6 +14,17 @@ function App() {
   const [userPlaces, setUserPlaces] = useState([]);
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchedPlaces = async () => {
+      const result = await fetchUserPlaces();
+      console.log(result);
+
+      setUserPlaces(result.places);
+    };
+
+    fetchedPlaces();
+  }, []);
 
   function handleStartRemovePlace(place) {
     setModalIsOpen(true);
@@ -22,16 +35,22 @@ function App() {
     setModalIsOpen(false);
   }
 
-  function handleSelectPlace(selectedPlace) {
-    setUserPlaces((prevPickedPlaces) => {
-      if (!prevPickedPlaces) {
-        prevPickedPlaces = [];
-      }
-      if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
-        return prevPickedPlaces;
-      }
-      return [selectedPlace, ...prevPickedPlaces];
-    });
+  async function handleSelectPlace(selectedPlace) {
+    try {
+      await updateUserPlaces([selectedPlace, ...userPlaces]);
+
+      setUserPlaces((prevPickedPlaces) => {
+        if (!prevPickedPlaces) {
+          prevPickedPlaces = [];
+        }
+        if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
+          return prevPickedPlaces;
+        }
+        return [selectedPlace, ...prevPickedPlaces];
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   const handleRemovePlace = useCallback(async function handleRemovePlace() {
