@@ -7,7 +7,7 @@ export const fetchAvailablePlaces = async () => {
 }
 
 export const updateUserPlaces = async (selectedPlace) => {
-    const result = await axios.put('http://localhost:3000/user-places', selectedPlace)
+    const result = await axios.put('http://localhost:3000/user-places', {  places: selectedPlace })
 
     console.log(result)
 
@@ -17,6 +17,11 @@ export const updateUserPlaces = async (selectedPlace) => {
 export const fetchUserPlaces = async () => {
     try {
         const result = await axios.get('http://localhost:3000/user-places')
+
+        //if failed to update user data throw an error
+        if (!result.data) {
+            throw new Error('Failed to update user data')
+        }
 
         return result.data
     } catch (error) {

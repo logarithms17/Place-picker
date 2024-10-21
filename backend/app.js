@@ -35,14 +35,8 @@ app.get('/user-places', async (req, res) => {
 });
 
 app.put('/user-places', async (req, res) => {
-  const places = req.body;
+  const places = req.body.places;
   console.log(places)
-
-  // const fileContent = await fs.readFile('./data/user-places.json')
-  // const parsedPlaces = JSON.parse(fileContent)
-  // console.log(parsedPlaces)
-
-  // const placeExist = places.some((place) => place.id === parsedPlaces.id)
 
   await fs.writeFile('./data/user-places.json', JSON.stringify(places));
 

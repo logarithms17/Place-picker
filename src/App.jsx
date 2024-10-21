@@ -7,13 +7,14 @@ import logoImg from "./assets/logo.png";
 import AvailablePlaces from "./components/AvailablePlaces.jsx";
 import axios from "axios";
 import { updateUserPlaces, fetchUserPlaces } from "./http.js";
+import Error from "./components/Error.jsx";
 
 function App() {
   const selectedPlace = useRef();
 
   const [userPlaces, setUserPlaces] = useState([]);
-
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [errorUpdatingPlaces, setErrorUpdatingPlaces] = useState(null);
 
   useEffect(() => {
     const fetchedPlaces = async () => {
@@ -36,20 +37,27 @@ function App() {
   }
 
   async function handleSelectPlace(selectedPlace) {
+    setUserPlaces((prevPickedPlaces) => {
+      if (!prevPickedPlaces) {
+        prevPickedPlaces = [];
+      }
+      if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
+        console.log("Already in the list");
+        return prevPickedPlaces;
+      }
+      return [selectedPlace, ...prevPickedPlaces];
+    });
+
+    console.log("Places updated");
     try {
       await updateUserPlaces([selectedPlace, ...userPlaces]);
-
-      setUserPlaces((prevPickedPlaces) => {
-        if (!prevPickedPlaces) {
-          prevPickedPlaces = [];
-        }
-        if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
-          return prevPickedPlaces;
-        }
-        return [selectedPlace, ...prevPickedPlaces];
-      });
     } catch (error) {
       console.log(error);
+      setUserPlaces(userPlaces);
+
+      setErrorUpdatingPlaces({
+        message: error.message || "Failed to update places.",
+      });
     }
   }
 
@@ -61,8 +69,22 @@ function App() {
     setModalIsOpen(false);
   }, []);
 
+  const handleError = () => {
+    setErrorUpdatingPlaces(null);
+  };
+
   return (
     <>
+      <Modal open={errorUpdatingPlaces} onClose={handleError}>
+        {errorUpdatingPlaces && (
+          <Error
+            title="An error occured"
+            message={errorUpdatingPlaces.message}
+            onConfirm={handleError}
+          />
+        )}
+      </Modal>
+
       <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
