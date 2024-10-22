@@ -66,8 +66,19 @@ function App() {
       prevPickedPlaces.filter((place) => place.id !== selectedPlace.current.id)
     );
 
+    //update user places from the backend
+    try {
+      await updateUserPlaces(
+      userPlaces.filter((place) => place.id !== selectedPlace.id)
+    );
+    } catch (error) {
+      setUserPlaces(userPlaces)
+      setErrorUpdatingPlaces({message: error.message || 'Failed to delete place.'}) //updates the error message to be used on modal
+    }
+    
+
     setModalIsOpen(false);
-  }, []);
+  }, [userPlaces]);
 
   const handleError = () => {
     setErrorUpdatingPlaces(null);
