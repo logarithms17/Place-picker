@@ -24,7 +24,7 @@ export const fetchUserPlaces = async () => {
             throw new Error('Failed to update user data')
         }
 
-        return result.data
+        return result.data.places
     } catch (error) {
         console.log(error)
     }
