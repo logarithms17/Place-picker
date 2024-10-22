@@ -7,6 +7,7 @@ export const fetchAvailablePlaces = async () => {
 }
 
 export const updateUserPlaces = async (selectedPlace) => {
+    console.log(selectedPlace)
     const result = await axios.put('http://localhost:3000/user-places', {  places: selectedPlace })
 
     console.log(result)

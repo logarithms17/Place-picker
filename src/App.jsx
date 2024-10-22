@@ -15,16 +15,24 @@ function App() {
   const [userPlaces, setUserPlaces] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [errorUpdatingPlaces, setErrorUpdatingPlaces] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState();
 
   useEffect(() => {
     const fetchedPlaces = async () => {
-      const result = await fetchUserPlaces();
-      console.log(result);
+      setIsFetching(true);
+      try {
+        const result = await fetchUserPlaces();
 
-      setUserPlaces(result.places);
+        setUserPlaces(result.places);
+      } catch (error) {
+        console.log(error);
+        setError({ message: error.message } || "Failed to fetch images");
+      }
     };
 
     fetchedPlaces();
+    setIsFetching(false);
   }, []);
 
   function handleStartRemovePlace(place) {
@@ -61,24 +69,31 @@ function App() {
     }
   }
 
-  const handleRemovePlace = useCallback(async function handleRemovePlace() {
-    setUserPlaces((prevPickedPlaces) =>
-      prevPickedPlaces.filter((place) => place.id !== selectedPlace.current.id)
-    );
+  const handleRemovePlace = useCallback(
+    async function handleRemovePlace() {
+      setUserPlaces((prevPickedPlaces) =>
+        prevPickedPlaces.filter(
+          (place) => place.id !== selectedPlace.current.id
+        )
+      );
 
-    //update user places from the backend
-    try {
-      await updateUserPlaces(
-      userPlaces.filter((place) => place.id !== selectedPlace.id)
-    );
-    } catch (error) {
-      setUserPlaces(userPlaces)
-      setErrorUpdatingPlaces({message: error.message || 'Failed to delete place.'}) //updates the error message to be used on modal
-    }
-    
+      //update user places from the backend
+      try {
+        console.log("entered try for updateUserPlace");
+        await updateUserPlaces(
+          userPlaces.filter((place) => place.id !== selectedPlace.current.id)
+        );
+      } catch (error) {
+        setUserPlaces(userPlaces);
+        setErrorUpdatingPlaces({
+          message: error.message || "Failed to delete place.",
+        }); //updates the error message to be used on modal
+      }
 
-    setModalIsOpen(false);
-  }, [userPlaces]);
+      setModalIsOpen(false);
+    },
+    [userPlaces]
+  );
 
   const handleError = () => {
     setErrorUpdatingPlaces(null);
@@ -112,12 +127,17 @@ function App() {
         </p>
       </header>
       <main>
-        <Places
-          title="I'd like to visit ..."
-          fallbackText="Select the places you would like to visit below."
-          places={userPlaces}
-          onSelectPlace={handleStartRemovePlace}
-        />
+        {error && <Error title="An error occured!" message={error.message} />}
+        {!error && (
+          <Places
+            title="I'd like to visit ..."
+            fallbackText="Select the places you would like to visit below."
+            isLoading={isFetching}
+            loadingText="Fetching your places..."
+            places={userPlaces}
+            onSelectPlace={handleStartRemovePlace}
+          />
+        )}
 
         <AvailablePlaces onSelectPlace={handleSelectPlace} />
       </main>
